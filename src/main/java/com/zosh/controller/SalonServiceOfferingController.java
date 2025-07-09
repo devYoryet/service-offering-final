@@ -26,28 +26,78 @@ public class SalonServiceOfferingController {
     @PostMapping
     public ResponseEntity<ServiceOffering> createService(
             @RequestHeader("Authorization") String jwt,
-            @RequestBody ServiceDTO service) throws Exception {
+            @RequestBody ServiceDTO service) {
 
-        SalonDTO salon=salonService.getSalonByOwner(jwt).getBody();
+        System.out.println("🛠️ SERVICE-OFFERING - createService");
 
-        CategoryDTO category=categoryService
-                .getCategoryById(service.getCategory()).getBody();
+        try {
+            // 🚀 OBTENER SALÓN CON MANEJO DE ERRORES
+            SalonDTO salon = null;
+            try {
+                salon = salonService.getSalonByOwner(jwt).getBody();
+            } catch (Exception e) {
+                System.err.println("❌ Error obteniendo salón: " + e.getMessage());
 
-        ServiceOffering createdService = serviceOfferingService
-                .createService(service,salon,category);
-        return new ResponseEntity<>(createdService, HttpStatus.CREATED);
+                // 🚨 MANEJO ESPECÍFICO DE ERRORES
+                if (e.getMessage().contains("404") || e.getMessage().contains("not found")) {
+                    return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                            .body(null); // O crear una respuesta de error personalizada
+                }
+                throw e; // Re-lanzar otros errores
+            }
+
+            if (salon == null) {
+                System.out.println("❌ Usuario no tiene salón registrado");
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
+            }
+
+            System.out.println("✅ Salón encontrado: " + salon.getName());
+
+            // 🚀 OBTENER CATEGORÍA CON MANEJO DE ERRORES
+            CategoryDTO category = null;
+            try {
+                category = categoryService.getCategoryById(service.getCategory()).getBody();
+            } catch (Exception e) {
+                System.err.println("❌ Error obteniendo categoría: " + e.getMessage());
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
+            }
+
+            if (category == null) {
+                System.out.println("❌ Categoría no encontrada");
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
+            }
+
+            // 🚀 CREAR SERVICIO
+            ServiceOffering createdService = serviceOfferingService.createService(service, salon, category);
+
+            return new ResponseEntity<>(createdService, HttpStatus.CREATED);
+
+        } catch (Exception e) {
+            System.err.println("❌ Error general creando servicio: " + e.getMessage());
+            e.printStackTrace();
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        }
     }
 
     @PatchMapping("/{serviceId}")
     public ResponseEntity<ServiceOffering> updateService(
             @PathVariable Long serviceId,
-            @RequestBody ServiceOffering service) throws Exception {
-        ServiceOffering updatedService = serviceOfferingService
-                .updateService(serviceId, service);
-        if (updatedService != null) {
-            return new ResponseEntity<>(updatedService, HttpStatus.OK);
-        }
-        return new ResponseEntity<>(HttpStatus.NOT_FOUND);
-    }
+            @RequestBody ServiceOffering service) {
 
+        System.out.println("🛠️ SERVICE-OFFERING - updateService");
+
+        try {
+            ServiceOffering updatedService = serviceOfferingService.updateService(serviceId, service);
+
+            if (updatedService != null) {
+                return new ResponseEntity<>(updatedService, HttpStatus.OK);
+            }
+
+            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+
+        } catch (Exception e) {
+            System.err.println("❌ Error actualizando servicio: " + e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        }
+    }
 }
