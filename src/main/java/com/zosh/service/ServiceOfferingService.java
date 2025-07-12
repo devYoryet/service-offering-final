@@ -10,21 +10,21 @@ import java.util.Set;
 
 public interface ServiceOfferingService {
 
+        ServiceOffering createService(
+                        ServiceDTO service,
+                        SalonDTO salon,
+                        CategoryDTO category);
 
-    ServiceOffering createService(
-            ServiceDTO service,
-            SalonDTO salon,
-            CategoryDTO category
-    );
+        com.zosh.modal.ServiceOffering updateService(
+                        Long serviceId,
+                        ServiceOffering service) throws Exception;
 
-    com.zosh.modal.ServiceOffering updateService(
-            Long serviceId,
-            ServiceOffering service
-    ) throws Exception;
+        Set<ServiceOffering> getAllServicesBySalonId(Long salonId, Long categoryId);
 
-    Set<ServiceOffering> getAllServicesBySalonId(Long salonId,Long categoryId);
+        com.zosh.modal.ServiceOffering getServiceById(Long serviceId);
 
-    com.zosh.modal.ServiceOffering getServiceById(Long serviceId);
+        Set<ServiceOffering> getServicesByIds(Set<Long> ids);
 
-    Set<ServiceOffering> getServicesByIds(Set<Long> ids);
+        void deleteService(Long serviceId) throws Exception;
+
 }

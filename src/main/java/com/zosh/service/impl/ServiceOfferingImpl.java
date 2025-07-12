@@ -105,4 +105,12 @@ public class ServiceOfferingImpl implements ServiceOfferingService {
         List<ServiceOffering> list = serviceOfferingRepository.findAllById(ids);
         return new HashSet<>(list);
     }
+
+    @Override
+    public void deleteService(Long serviceId) throws Exception {
+        ServiceOffering service = serviceOfferingRepository.findById(serviceId)
+                .orElseThrow(() -> new Exception("Servicio no encontrado con ID: " + serviceId));
+
+        serviceOfferingRepository.delete(service);
+    }
 }

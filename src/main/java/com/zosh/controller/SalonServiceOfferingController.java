@@ -151,4 +151,28 @@ public class SalonServiceOfferingController {
         errorResponse.put("timestamp", java.time.LocalDateTime.now().toString());
         return errorResponse;
     }
+
+    @DeleteMapping("/{serviceId}")
+    public ResponseEntity<?> deleteService(
+            @PathVariable Long serviceId,
+            @RequestHeader("Authorization") String jwt) {
+        try {
+            // Verificar que el usuario tiene un salón
+            SalonDTO salon = salonService.getSalonByOwner(jwt).getBody();
+            if (salon == null) {
+                return badRequest("Usuario no tiene salón registrado");
+            }
+
+            // Eliminar el servicio
+            serviceOfferingService.deleteService(serviceId);
+
+            return ResponseEntity.ok(Map.of(
+                    "success", true,
+                    "message", "Servicio eliminado exitosamente",
+                    "timestamp", java.time.LocalDateTime.now().toString()));
+
+        } catch (Exception e) {
+            return serverError("Error eliminando servicio: " + e.getMessage());
+        }
+    }
 }
